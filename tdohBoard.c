@@ -1,7 +1,7 @@
 #include "tdohBoard.h"
 #include "sha1.h"
 
-const static char* flags[] = {
+const static char* flags[PROBNUM] = {
     "TDOH{Y0U_AR3_R3A11Y_A_B0T}",
     "TDOH{CAESAR_IS_PROUD_OF_YOU}",
     "TDOH{Y0U_AR3_7H3_\\/\\/1NN3R}",
@@ -89,10 +89,22 @@ void printKeyMenu()
     fflush(stdout);
 }
 
+int checkAllPass()
+{
+    int i = 0;
+    for (i = 0; i < PROBNUM; ++i)
+        if (!user->flags[i]) return 0;
+    return 1;
+}
+
 void inputKey()
 {
     unsigned ch = 0;
     char buff[255] = "";
+    if (checkAllPass()) {
+        puts("您已經破台惹！");
+        return;
+    }
     puts("");
     printf("Hello %s, which flag are you going to input?\n", id);
     printKeyMenu();
@@ -119,6 +131,12 @@ void inputKey()
         user->flags[ch-1] = 1;
         fseek(fp, 40, SEEK_SET);
         fwrite(user->flags, sizeof(char), PROBNUM, fp);
+        if (checkAllPass()) {
+            puts("恭喜破台！");
+            puts("請記得去 TDOH 攤位兌換精美小禮物喔！");
+            fflush(stdout);
+            exit(0);
+        }
     }
     else {
         puts("Sorry! you shall not pass OwQ");
@@ -206,7 +224,7 @@ int main(int argc, char const *argv[])
         printMenu();
         ch = noBlackBlackInput();
         fflush(stdout);
-        if (ch > 3) {
+        if (ch > 2) {
             printf("%s\n", "Func not found");
             fflush(stdout);
         }
