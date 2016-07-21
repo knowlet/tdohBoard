@@ -125,7 +125,7 @@ void inputKey()
         fflush(stdout);
         exit(1);
     }
-    if (!strncmp(inputFlag, flags[ch-1], strlen(flags[ch-1]))) {
+    if (!strncmp(inputFlag, flags[ch-1], strlen(inputFlag))) {
         puts("Correct! you're good at it!");
         fflush(stdout);
         user->flags[ch-1] = 1;
