@@ -1,23 +1,10 @@
 #include "tdohBoard.h"
 #include "sha1.h"
 
-const static char* flags[PROBNUM] = {
-    "TDOH{Y0U_AR3_R3A11Y_A_B0T}",
-    "TDOH{CAESAR_IS_PROUD_OF_YOU}",
-    "TDOH{Y0U_AR3_7H3_\\/\\/1NN3R}",
-    "TDOH{/*_N0THING_C0NFUSES_U!!_*/}",
-    "TDOH{Y0U_B3A7_7H3_R/\\ND0M}"
-};
-const static char* probName[PROBNUM] = {
-    "Base64x16",
-    "Crypto",
-    "Loser'sFileReader",
-    "findMyKey",
-    "tdohLoginSystem"
-};
 static char id[32] = "";
 static char inputFlag[48] = "";
 static FILE *fp = NULL;
+static PROB *prob = NULL;
 static USER *user = NULL;
 
 int scan(FILE *fp, char *buffer, size_t bufsiz)
@@ -88,7 +75,7 @@ void printKeyMenu()
     puts("\t ---- Welcome to TDoHacker wargame! ---- ");
     puts("\t|                                       |");
     for (i = 0; i < PROBNUM; ++i)
-        printf("\t| [%d] %-25s%8s |\n", i + 1, probName[i], user->flags[i] ? "(pass)" : "");
+        printf("\t| [%d] %-25s%8s |\n", i + 1, prob[i].name, user->flags[i] ? "(pass)" : "");
     puts("\t|                                       |");
     puts("\t --------------------------------------- ");
     fflush(stdout);
@@ -128,7 +115,7 @@ void inputKey()
         puts("You shall not pass!");
         exit(1);
     }
-    if (!strncmp(inputFlag, flags[ch-1], strlen(inputFlag))) {
+    if (!strcmp(inputFlag, prob[ch-1].flag)) {
         puts("Correct! you're good at it!");
         user->flags[ch-1] = 1;
         fseek(fp, 40, SEEK_SET);
@@ -166,7 +153,7 @@ void readCode()
         puts("No source code for U ^_^");
     }
     return;
-
+    
 }
 
 void bye()
@@ -192,6 +179,7 @@ static void (*menuFunc[])(void) = {magic, inputKey, readCode, bye};
 int main(int argc, char const *argv[])
 {
     const unsigned menuNum = sizeof(menuFunc) / sizeof(void*);
+    prob = calloc(PROBNUM, sizeof(PROB));
     user = calloc(1, sizeof(USER));
     unsigned int ch = -1;
     int isExist = 0;
@@ -199,7 +187,15 @@ int main(int argc, char const *argv[])
     char passwd[48] = "";
     char passHash[40] = "";
     char path[255] = "data/users/";
-
+    
+    if ((fp=fopen("flag.dat", "rb")) != NULL) {
+        fread(prob, sizeof(PROB), PROBNUM, fp);
+        fclose(fp);
+    }
+    else {
+        puts("Init false exiting...");
+        exit(1);
+    }
     printf("Please input id (max: 25): ");
     fflush(stdout);
     scan(stdin, id, 25);
