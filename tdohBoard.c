@@ -17,7 +17,6 @@ const static char* probName[PROBNUM] = {
 };
 static char id[32] = "";
 static char inputFlag[48] = "";
-static char ansFlags[10] = {};
 static FILE *fp = NULL;
 static USER *user = NULL;
 
@@ -28,14 +27,19 @@ int scan(FILE *fp, char *buffer, size_t bufsiz)
     return fscanf(fp, format, buffer);
 }
 
+int put(const char* str)
+{
+    int ret = put(str);
+    fflush(stdout);
+    return ret;
+}
+
 int noBlackBlackInput()
 {
     char input[4] = "";
     scan(stdin, input, 2);
-    fflush(stdin);
     if (!isdigit(*input)) {
         puts("Input Error! Not a number");
-        fflush(stdout);
         return 0;
     }
     return *input ^ 0x30;
@@ -112,7 +116,6 @@ void inputKey()
     if (!ch || ch > PROBNUM) return;
     if (user->flags[ch-1]) {
         puts("You had passed this already.");
-        fflush(stdout);
         return;
     }
     printf("Please input your flag (format: TDOH{printable_ascii}): ");
@@ -122,25 +125,21 @@ void inputKey()
     if (checkNotPrintable(inputFlag, 40)) {
         puts("I don't think this is a key...");
         puts("You shall not pass!");
-        fflush(stdout);
         exit(1);
     }
     if (!strncmp(inputFlag, flags[ch-1], strlen(inputFlag))) {
         puts("Correct! you're good at it!");
-        fflush(stdout);
         user->flags[ch-1] = 1;
         fseek(fp, 40, SEEK_SET);
         fwrite(user->flags, sizeof(char), PROBNUM, fp);
         if (checkAllPass()) {
             puts("恭喜破台！");
             puts("請記得去 TDOH 攤位兌換精美小禮物喔！");
-            fflush(stdout);
             exit(0);
         }
     }
     else {
         puts("Sorry! you shall not pass OwQ");
-        fflush(stdout);
     }
 }
 
@@ -148,13 +147,11 @@ void bye()
 {
     puts("歡迎來 TDoH 的攤位晃晃喔～");
     puts("Bye～");
-    fflush(stdout);
     exit(0);
 }
 
 int checkExist(char* hash)
 {
-    FILE *file;
     struct stat st;
     int result = stat(hash, &st);
     return result == 0;
@@ -175,22 +172,22 @@ int main(int argc, char const *argv[])
     char passwd[48] = "";
     char passHash[40] = "";
     char path[255] = "data/users/";
-
+    
     printf("Please input id (max: 25): ");
     fflush(stdout);
     scan(stdin, id, 25);
-
+    
     if (checkNotPrintable(id, 25)) exit(1);
     sha1(id, hash);
-
+    
     strcat(path, hash);
     isExist = checkExist(path);
-    if (isExist) 
+    if (isExist)
         printf("Input passwd to login: ");
     else {
         printf("Input passwd to create (max: 40): ");
     }
-
+    fflush(stdout);
     scan(stdin, passwd, 40);
     sha1(passwd, passHash);
     if (checkNotPrintable(id, 40)) exit(1);
@@ -206,11 +203,11 @@ int main(int argc, char const *argv[])
         }
         fclose(fp);
     }
-
+    
     if ((fp=fopen(path, "rb+")) != NULL) {
         puts("Trying to login...");
         fread(user, sizeof(USER), 1, fp);
-        if (strncmp(user->passwd, passHash, 40)) {
+        if (strncmp(user->passwd, passHash, strlen(passHash))) {
             puts("Wrong password!");
             exit(1);
         }
@@ -219,11 +216,10 @@ int main(int argc, char const *argv[])
         perror("FILE IO ERROR");
         exit(1);
     }
-
+    
     while (ch) {
         printMenu();
         ch = noBlackBlackInput();
-        fflush(stdout);
         if (ch > 2) {
             printf("%s\n", "Func not found");
             fflush(stdout);
