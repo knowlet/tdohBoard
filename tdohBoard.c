@@ -73,7 +73,8 @@ void printMenu()
     puts("\t ---- Welcome to TDoHacker wargame! ---- ");
     puts("\t|                                       |");
     puts("\t| [1] Input Key                         |");
-    puts("\t| [2] Bye~                              |");
+    puts("\t| [2] Read Code                         |");
+    puts("\t| [3] Bye~                              |");
     puts("\t|                                       |");
     puts("\t --------------------------------------- ");
     printf("What are you going to do? ");
@@ -143,6 +144,31 @@ void inputKey()
     }
 }
 
+void readCode()
+{
+    unsigned ch = 0;
+    char path[255] = "data/code/";
+    printKeyMenu();
+    printf("Which code do you want to read? ");
+    ch = noBlackBlackInput();
+    if (!ch || ch > PROBNUM) return;
+    path[strlen(path)] = '0' + ch;
+    strcat(path, "/main");
+    puts("");
+    if ((fp=fopen(path, "r")) != NULL) {
+        char c = EOF;
+        do {
+            putchar((c=fgetc(fp)));
+        } while (c != EOF);
+        fclose(fp);
+    }
+    else {
+        puts("No source code for U ^_^");
+    }
+    return;
+
+}
+
 void bye()
 {
     puts("歡迎來 TDoH 的攤位晃晃喔～");
@@ -162,9 +188,10 @@ void magic()
     exit(0);
 }
 
-static void (*menuFunc[])(void) = {magic, inputKey, bye};
+static void (*menuFunc[])(void) = {magic, inputKey, readCode, bye};
 int main(int argc, char const *argv[])
 {
+    const unsigned menuNum = sizeof(menuFunc) / sizeof(void*);
     user = calloc(1, sizeof(USER));
     unsigned int ch = -1;
     int isExist = 0;
@@ -172,7 +199,7 @@ int main(int argc, char const *argv[])
     char passwd[48] = "";
     char passHash[40] = "";
     char path[255] = "data/users/";
-    
+
     printf("Please input id (max: 25): ");
     fflush(stdout);
     scan(stdin, id, 25);
@@ -220,7 +247,7 @@ int main(int argc, char const *argv[])
     while (ch) {
         printMenu();
         ch = noBlackBlackInput();
-        if (ch > 2) {
+        if (ch > menuNum) {
             printf("%s\n", "Func not found");
             fflush(stdout);
         }
