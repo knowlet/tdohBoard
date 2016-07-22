@@ -7,6 +7,12 @@
 
 #define PROBNUM 5
 
+typedef struct _prob
+{
+    char name[64];
+    char flag[64];
+} PROB;
+
 typedef struct _user
 {
     char passwd[40];
