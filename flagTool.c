@@ -29,5 +29,6 @@ int main(int argc, char const *argv[])
         }
     }
     fclose(fp);
+    free(prob);
     return 0;
 }
